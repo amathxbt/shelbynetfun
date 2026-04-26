@@ -1,18 +1,20 @@
 import { useState, useRef } from "react";
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
+import { AccountAuthenticator, Deserializer, SimpleTransaction } from "@aptos-labs/ts-sdk";
 import { useMemeStore } from "../store/memeStore";
 import { uploadToShelby } from "../lib/shelby";
-import { MODULE_ADDR } from "../lib/aptos";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { Upload, Wand2, Loader2, CheckCircle2, Shield, Zap, AlertTriangle } from "lucide-react";
 import { useIsCorrectNetwork } from "../components/NetworkWarning";
 import type { Meme } from "../lib/types";
 
+const API_BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") ?? "";
+
 type Step = "generate" | "upload" | "mint" | "done";
 
 export default function Mint() {
-  const { connected, account, signAndSubmitTransaction } = useWallet();
+  const { connected, account, signTransaction } = useWallet();
   const { addMeme, memes, fetchFromChain } = useMemeStore();
   const { toast } = useToast();
   const [, navigate] = useLocation();
@@ -27,7 +29,6 @@ export default function Mint() {
   const [uploading, setUploading] = useState(false);
   const [minting, setMinting] = useState(false);
   const [shelbyResult, setShelbyResult] = useState<{ objectId: string; proofHash: string; url: string } | null>(null);
-  const [mintedMeme, setMintedMeme] = useState<Meme | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const REPLICATE_KEY = import.meta.env.VITE_REPLICATE_API_KEY || "";
@@ -106,50 +107,61 @@ export default function Mint() {
       return;
     }
     setMinting(true);
-    let onChainSuccess = false;
     try {
-      await signAndSubmitTransaction({
-        data: {
-          function: `${MODULE_ADDR}::meme_dao_royale::mint_meme`,
-          typeArguments: [],
-          // caller (signer) is implicit — args: registry, title, image_url, proof_hash
-          functionArguments: [
-            MODULE_ADDR,
-            title || "Untitled Meme",
-            shelbyResult.objectId,
-            shelbyResult.proofHash,
-          ],
-        },
+      // Step 1: ask the API server to build a fee-payer transaction
+      // The deployer pays gas in ShelbyUSD, user just signs as sender
+      const buildResp = await fetch(`${API_BASE}/api/mint/build`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          senderAddress: account.address.toString(),
+          title: title || "Untitled Meme",
+          objectId: shelbyResult.objectId,
+          proofHash: shelbyResult.proofHash,
+        }),
       });
-      onChainSuccess = true;
-      toast({ title: "Minted on-chain!" });
-    } catch (err) {
-      console.error("Mint tx error:", err);
-      toast({ title: "Tx failed — check Petra is on Devnet", variant: "destructive" });
-    }
+      if (!buildResp.ok) {
+        const err = await buildResp.json().catch(() => ({}));
+        throw new Error(err.error || "Failed to build transaction");
+      }
+      const { txBytes } = await buildResp.json() as { txBytes: string };
 
-    if (onChainSuccess) {
-      // Refresh from chain to get the real meme ID
+      // Step 2: deserialize the transaction and have Petra sign it as sender only
+      const rawBytes = Uint8Array.from(atob(txBytes), (c) => c.charCodeAt(0));
+      const tx = SimpleTransaction.deserialize(new Deserializer(rawBytes));
+
+      const senderAuthenticator = await signTransaction(tx);
+      const authBytes = (senderAuthenticator as AccountAuthenticator).bcsToBytes();
+      const senderAuthBytes = btoa(String.fromCharCode(...authBytes));
+
+      // Step 3: send both back to API server — it signs as fee payer and submits
+      const submitResp = await fetch(`${API_BASE}/api/mint/submit`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ txBytes, senderAuthBytes }),
+      });
+      if (!submitResp.ok) {
+        const err = await submitResp.json().catch(() => ({}));
+        throw new Error(err.error || "Transaction submission failed");
+      }
+      const { txHash, success } = await submitResp.json() as { txHash: string; success: boolean };
+
+      if (!success) throw new Error("Transaction executed but reported failure");
+
+      toast({
+        title: "Minted on-chain with ShelbyUSD gas!",
+        description: `Tx: ${txHash.slice(0, 20)}...`,
+      });
+
       await fetchFromChain();
-    } else {
-      // Fallback: show optimistic local state
-      const newMeme: Meme = {
-        id: (memes[0]?.id ?? 0) + Math.floor(Math.random() * 100) + 1,
-        title: title || "Untitled Meme",
-        shelbyObjectId: shelbyResult.objectId,
-        proofHash: shelbyResult.proofHash,
-        creator: account?.address?.toString() ?? "0x0",
-        parentId: 0,
-        voteCount: 0,
-        timestampUs: Date.now() * 1000,
-        isLegendary: false,
-        imageUrl: shelbyResult.url.startsWith("blob:") ? shelbyResult.url : previewUrl ?? undefined,
-      };
-      addMeme(newMeme);
-      setMintedMeme(newMeme);
+      setStep("done");
+    } catch (err) {
+      console.error("Mint error:", err);
+      const msg = err instanceof Error ? err.message : String(err);
+      toast({ title: "Mint failed", description: msg, variant: "destructive" });
+    } finally {
+      setMinting(false);
     }
-    setStep("done");
-    setMinting(false);
   }
 
   const STEPS = [
@@ -270,15 +282,22 @@ export default function Mint() {
               <div className="text-[#c8a48e] break-all">Proof: {shelbyResult.proofHash.slice(0, 48)}...</div>
             </div>
 
+            {/* Gas info badge */}
+            <div className="flex items-center gap-2 rounded-xl border border-green-500/30 bg-green-900/20 px-3 py-2">
+              <Zap size={13} className="text-green-400 shrink-0" />
+              <span className="text-xs text-green-300 font-medium">
+                Gas paid in <span className="font-bold text-green-400">ShelbyUSD</span> by the protocol — you don't need APT
+              </span>
+            </div>
+
             {connected && !isCorrectNetwork && (
               <div className="flex items-start gap-2.5 rounded-xl border border-amber-500/50 bg-amber-900/40 p-3.5">
                 <AlertTriangle size={16} className="text-amber-400 mt-0.5 shrink-0" />
                 <div className="space-y-1">
-                  <p className="text-sm font-bold text-amber-300">Wrong network — switch to Devnet</p>
+                  <p className="text-sm font-bold text-amber-300">Wrong network — switch to Shelbynet</p>
                   <p className="text-xs text-amber-200/80">
-                    Open Petra → tap the network badge at the top → select{" "}
-                    <span className="font-bold text-amber-400">Devnet</span>.
-                    The contract lives on Devnet only.
+                    Open Petra → Settings → Network →{" "}
+                    <span className="font-bold text-amber-400">Shelbynet</span>.
                   </p>
                 </div>
               </div>
@@ -295,8 +314,8 @@ export default function Mint() {
                 : !connected
                 ? "Connect Petra to Mint"
                 : !isCorrectNetwork
-                ? "Switch Petra to Devnet First"
-                : "Mint On-Chain"}
+                ? "Switch Petra to Shelbynet"
+                : "Mint On-Chain (ShelbyUSD gas)"}
             </button>
           </div>
         )}
@@ -306,11 +325,11 @@ export default function Mint() {
             <div className="text-5xl">🎉</div>
             <h3 className="text-xl font-black text-[#FDF0E4]">Your meme is on-chain!</h3>
             <p className="text-sm text-[#c8a48e]">
-              Your meme is immortalised on Shelbynet with a cryptographic proof of existence.
+              Immortalised on Shelbynet with a cryptographic proof of existence. Gas paid in ShelbyUSD.
             </p>
             <div className="flex gap-3">
               <button
-                onClick={() => { setStep("generate"); setPreviewUrl(null); setFile(null); setShelbyResult(null); setTitle(""); setPrompt(""); setMintedMeme(null); }}
+                onClick={() => { setStep("generate"); setPreviewUrl(null); setFile(null); setShelbyResult(null); setTitle(""); setPrompt(""); }}
                 className="flex-1 rounded-xl border border-[#4D3826] py-2.5 text-sm font-semibold text-[#c8a48e] hover:bg-[#4D3826] transition"
               >
                 Mint Another
