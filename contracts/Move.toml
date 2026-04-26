@@ -1,0 +1,17 @@
+[package]
+name = "MemeDAORoyale"
+version = "1.0.0"
+authors = []
+
+[addresses]
+memedao = "_"
+
+[dev-addresses]
+memedao = "0xCAFE"
+
+[dependencies.AptosFramework]
+git = "https://github.com/aptos-labs/aptos-core.git"
+rev = "main"
+subdir = "aptos-move/framework/aptos-framework"
+
+[dev-dependencies]
