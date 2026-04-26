@@ -8,7 +8,7 @@ export default function MyMemes() {
   const { account, connected } = useWallet();
   const { memes } = useMemeStore();
 
-  const myMemes = memes.filter((m) => m.creator === account?.address);
+  const myMemes = memes.filter((m) => m.creator === account?.address?.toString());
   const totalVotes = myMemes.reduce((s, m) => s + m.voteCount, 0);
   const legendaryCount = myMemes.filter((m) => m.isLegendary).length;
 
@@ -27,7 +27,7 @@ export default function MyMemes() {
     <div className="mx-auto max-w-5xl px-4 py-10">
       <div className="mb-8">
         <h1 className="text-3xl font-black shelby-text-gradient mb-1">My Memes</h1>
-        <p className="font-mono text-sm text-muted-foreground">{account.address}</p>
+        <p className="font-mono text-sm text-muted-foreground">{account.address.toString()}</p>
       </div>
 
       <div className="mb-8 grid grid-cols-3 gap-4">

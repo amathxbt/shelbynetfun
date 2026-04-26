@@ -75,7 +75,7 @@ export default function Remix() {
       title,
       shelbyObjectId: shelbyResult.objectId,
       proofHash: shelbyResult.proofHash,
-      creator: account?.address ?? "0x0",
+      creator: account?.address?.toString() ?? "0x0",
       parentId,
       voteCount: 0,
       timestampUs: Date.now() * 1000,

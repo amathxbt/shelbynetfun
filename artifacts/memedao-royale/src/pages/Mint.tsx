@@ -136,7 +136,7 @@ export default function Mint() {
         title: title || "Untitled Meme",
         shelbyObjectId: shelbyResult.objectId,
         proofHash: shelbyResult.proofHash,
-        creator: account?.address ?? "0x0",
+        creator: account?.address?.toString() ?? "0x0",
         parentId: 0,
         voteCount: 0,
         timestampUs: Date.now() * 1000,
