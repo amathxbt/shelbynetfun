@@ -1,0 +1,56 @@
+You are an expert full-stack Aptos + Shelby developer. Build a complete, ready-to-deploy MVP called **MemeDAO Royale** — a fully on-chain AI Meme Provenance Arena on Shelby (shelbynet) + Aptos.
+
+### Project Requirements (Fully On-Chain)
+- Users connect Aptos wallet on **shelbynet** network.
+- Mint on-chain "Meme" Move resources that store: Shelby object ID + cryptographic proof hash + creator address + timestamp.
+- Simple on-chain voting (one vote per wallet).
+- Auto-mint "Legendary Badge" resources for top memes.
+- Remix feature that forks an existing meme on-chain.
+- All ownership, voting, badges, and state are 100% in Move contracts. No off-chain database for core logic.
+- AI image generation → upload to Shelby → get proof → mint on-chain.
+
+### Tech Stack
+- Backend: Aptos Move contracts (target = shelbynet)
+- Frontend: Next.js 15 (App Router) + TypeScript + Tailwind + shadcn/ui + @aptos-labs/wallet-adapter-react
+- Storage: @shelby-protocol/sdk (latest version) — use S3-compatible upload with cryptographic proofs
+- AI: Placeholder Replicate/Flux API or any free image model (user can swap)
+- Indexing: Aptos GraphQL / Indexer for reading memes live
+
+### Design — Match Shelby Exactly
+Use Shelby's official vibrant color palette:
+- Primary coral/red: #d66868
+- Lime green: #c1d848
+- Teal/cyan: #6dd6ce
+- Purple: #af85db
+- Bright green: #86d883
+- Background: clean off-white / soft gradients (#f8f7f4 → #f0f0f0)
+- No dark mode. Bright, energetic, trustworthy, minimal Web3 vibe with subtle hexagon accents if it fits.
+- Font: modern sans (Inter or system) + clean headings.
+
+Pages to include:
+- Home / Hero with "Enter the Arena" button
+- Generate + Upload Meme flow
+- Live Gallery (instant Shelby reads)
+- Arena / Battle page with voting
+- Leaderboard + Hall of Fame
+- My Memes (wallet view)
+
+### Deliverables
+Output the full project as a monorepo structure with:
+1. `/contracts` folder → complete Move modules (Meme.move, Voting.move, Badge.move, etc.) with deployment scripts
+2. `/frontend` folder → full Next.js app
+3. `README.md` with:
+   - Step-by-step setup (install, env vars, Shelby SDK auth)
+   - How to deploy the Move contract on shelbynet (using private key — user will provide)
+   - How to deploy frontend to Vercel (one-click + CLI instructions)
+   - Faucet links (Shelby + Aptos shelbynet)
+   - How to run locally
+
+Make it fun, viral, and community-ready for Shelby/Aptos Discord. Add silly badge names like "Proof Lord", "Meme Overlord", live battle notifications, etc.
+
+Start by showing:
+1. The complete Move contract code
+2. package.json and setup instructions
+3. Then build the frontend step-by-step.
+
+The user will provide their shelbynet private key when you ask for deployment commands. Use environment variables for Shelby API key, never hardcode secrets.

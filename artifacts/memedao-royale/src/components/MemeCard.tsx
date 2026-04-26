@@ -2,9 +2,9 @@ import { Trophy, GitFork, ThumbsUp, Clock, Shield } from "lucide-react";
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
 import { useMemeStore } from "../store/memeStore";
 import type { Meme } from "../lib/types";
-import { useNavigate } from "wouter";
-import { useToast } from "@/components/ui/use-toast";
-import { MODULE_ADDR, aptos } from "../lib/aptos";
+import { useLocation } from "wouter";
+import { useToast } from "@/hooks/use-toast";
+import { MODULE_ADDR } from "../lib/aptos";
 
 interface MemeCardProps {
   meme: Meme;
@@ -26,7 +26,7 @@ function timeAgo(tsUs: number) {
 export function MemeCard({ meme }: MemeCardProps) {
   const { connected, account, signAndSubmitTransaction } = useWallet();
   const { vote, hasVoted } = useMemeStore();
-  const [, navigate] = useNavigate();
+  const [, navigate] = useLocation();
   const { toast } = useToast();
   const alreadyVoted = hasVoted(meme.id);
 
