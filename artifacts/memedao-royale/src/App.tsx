@@ -4,6 +4,7 @@ import { AptosWalletAdapterProvider } from "@aptos-labs/wallet-adapter-react";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import Arena from "@/pages/Arena";
@@ -22,9 +23,9 @@ const SHELBYNET_CONFIG = {
 
 function Router() {
   return (
-    <div className="min-h-screen bg-[#2B1E0E]">
+    <div className="min-h-screen bg-[#2B1E0E] flex flex-col">
       <Navbar />
-      <main>
+      <main className="flex-1">
         <Switch>
           <Route path="/" component={Home} />
           <Route path="/arena" component={Arena} />
@@ -35,6 +36,7 @@ function Router() {
           <Route component={NotFound} />
         </Switch>
       </main>
+      <Footer />
     </div>
   );
 }

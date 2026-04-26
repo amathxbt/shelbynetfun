@@ -32,40 +32,33 @@ export default function Mint() {
   const [mintTxHash, setMintTxHash] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const REPLICATE_KEY = import.meta.env.VITE_REPLICATE_API_KEY || "";
-
   async function handleGenerate() {
     if (!prompt.trim()) return;
     setGenerating(true);
     try {
-      if (REPLICATE_KEY) {
-        const resp = await fetch("https://api.replicate.com/v1/predictions", {
-          method: "POST",
-          headers: { Authorization: `Token ${REPLICATE_KEY}`, "Content-Type": "application/json" },
-          body: JSON.stringify({ version: "black-forest-labs/flux-schnell", input: { prompt, num_outputs: 1, aspect_ratio: "1:1" } }),
-        });
-        const pred = await resp.json();
-        let output = pred.output;
-        while (!output) {
-          await new Promise((r) => setTimeout(r, 1500));
-          const poll = await fetch(`https://api.replicate.com/v1/predictions/${pred.id}`, {
-            headers: { Authorization: `Token ${REPLICATE_KEY}` },
-          });
-          const p = await poll.json();
-          output = p.output;
-          if (p.status === "failed") throw new Error("Generation failed");
-        }
-        setPreviewUrl(Array.isArray(output) ? output[0] : output);
-      } else {
-        const seed = Math.floor(Math.random() * 9999);
-        await new Promise((r) => setTimeout(r, 800));
-        setPreviewUrl(`https://picsum.photos/seed/${seed}/500/500`);
-        toast({ title: "Demo mode — add VITE_REPLICATE_API_KEY for real AI images" });
+      // Call our API server which uses gpt-image-1 — no key needed on the frontend
+      const resp = await fetch(`${API_BASE}/api/generate-image`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt }),
+      });
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        throw new Error((err as { error?: string }).error || "Generation failed");
       }
+      const { b64_json } = await resp.json() as { b64_json: string };
+      // Convert base64 → blob URL for preview
+      const bytes = Uint8Array.from(atob(b64_json), (c) => c.charCodeAt(0));
+      const blob = new Blob([bytes], { type: "image/png" });
+      const url = URL.createObjectURL(blob);
+      // Store as File so it can be uploaded to Shelby
+      setFile(new File([blob], "ai-meme.png", { type: "image/png" }));
+      setPreviewUrl(url);
       setTitle(title || prompt.slice(0, 40));
       setStep("upload");
-    } catch {
-      toast({ title: "Generation failed", variant: "destructive" });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Generation failed";
+      toast({ title: "AI generation failed", description: msg, variant: "destructive" });
     } finally {
       setGenerating(false);
     }
