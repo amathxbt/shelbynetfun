@@ -11,12 +11,13 @@ import Mint from "@/pages/Mint";
 import Remix from "@/pages/Remix";
 import Leaderboard from "@/pages/Leaderboard";
 import MyMemes from "@/pages/MyMemes";
-import { Network } from "@aptos-labs/ts-sdk";
 
 const queryClient = new QueryClient();
 
+// Shelbynet is a custom Aptos-compatible network — we don't pass a network
+// enum here so the wallet adapter doesn't reject Petra on Shelbynet.
 const SHELBYNET_CONFIG = {
-  network: Network.DEVNET,
+  aptosConnectDappId: undefined,
 };
 
 function Router() {

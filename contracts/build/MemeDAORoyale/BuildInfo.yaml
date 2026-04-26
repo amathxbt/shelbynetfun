@@ -17,7 +17,7 @@ compiled_package_info:
     dev_mode: false
     test_mode: false
     verify_mode: false
-    override_std: Devnet
+    override_std: ~
     generate_docs: false
     generate_abis: false
     generate_move_model: true
