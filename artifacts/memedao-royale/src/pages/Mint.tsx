@@ -5,7 +5,7 @@ import { useMemeStore } from "../store/memeStore";
 import { uploadToShelby } from "../lib/shelby";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
-import { Upload, Wand2, Loader2, CheckCircle2, Shield, Zap, AlertTriangle } from "lucide-react";
+import { Upload, Wand2, Loader2, CheckCircle2, Shield, Zap, AlertTriangle, ExternalLink } from "lucide-react";
 import { useIsCorrectNetwork } from "../components/NetworkWarning";
 import type { Meme } from "../lib/types";
 
@@ -29,6 +29,7 @@ export default function Mint() {
   const [uploading, setUploading] = useState(false);
   const [minting, setMinting] = useState(false);
   const [shelbyResult, setShelbyResult] = useState<{ objectId: string; proofHash: string; url: string } | null>(null);
+  const [mintTxHash, setMintTxHash] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const REPLICATE_KEY = import.meta.env.VITE_REPLICATE_API_KEY || "";
@@ -153,6 +154,7 @@ export default function Mint() {
         description: `Tx: ${txHash.slice(0, 20)}...`,
       });
 
+      setMintTxHash(txHash);
       await fetchFromChain();
       setStep("done");
     } catch (err) {
@@ -321,15 +323,60 @@ export default function Mint() {
         )}
 
         {step === "done" && (
-          <div className="text-center space-y-4">
-            <div className="text-5xl">🎉</div>
-            <h3 className="text-xl font-black text-[#FDF0E4]">Your meme is on-chain!</h3>
-            <p className="text-sm text-[#c8a48e]">
-              Immortalised on Shelbynet with a cryptographic proof of existence. Gas paid in ShelbyUSD.
-            </p>
+          <div className="space-y-5">
+            <div className="text-center space-y-2">
+              <div className="text-5xl">🎉</div>
+              <h3 className="text-xl font-black text-[#FDF0E4]">Your meme is on-chain!</h3>
+              <p className="text-sm text-[#c8a48e]">
+                Immortalised on Shelbynet. Gas paid in ShelbyUSD by the protocol.
+              </p>
+            </div>
+
+            {/* Explorer links */}
+            <div className="rounded-xl border border-[#4D3826] bg-[#2B1E0E] divide-y divide-[#4D3826] overflow-hidden text-sm">
+              {mintTxHash && (
+                <a
+                  href={`https://explorer.shelbynet.shelby.xyz/txn/${mintTxHash}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between px-4 py-3 hover:bg-[#372818] transition group"
+                >
+                  <div className="space-y-0.5">
+                    <div className="text-[#F472B6] font-semibold text-xs uppercase tracking-wide">Mint Transaction</div>
+                    <div className="font-mono text-[#c8a48e] text-xs break-all">
+                      {mintTxHash.slice(0, 30)}...
+                    </div>
+                  </div>
+                  <ExternalLink size={14} className="text-[#F472B6] shrink-0 ml-3 group-hover:scale-110 transition-transform" />
+                </a>
+              )}
+              {shelbyResult && (
+                <a
+                  href={shelbyResult.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between px-4 py-3 hover:bg-[#372818] transition group"
+                >
+                  <div className="space-y-0.5">
+                    <div className="text-[#F472B6] font-semibold text-xs uppercase tracking-wide">Shelby Storage Blob</div>
+                    <div className="font-mono text-[#c8a48e] text-xs break-all">
+                      {shelbyResult.objectId.slice(0, 30)}...
+                    </div>
+                  </div>
+                  <ExternalLink size={14} className="text-[#F472B6] shrink-0 ml-3 group-hover:scale-110 transition-transform" />
+                </a>
+              )}
+              {shelbyResult && (
+                <div className="px-4 py-3">
+                  <div className="text-[#F472B6] font-semibold text-xs uppercase tracking-wide mb-1">Proof Hash (SHA-256)</div>
+                  <div className="font-mono text-[#c8a48e] text-xs break-all">{shelbyResult.proofHash}</div>
+                </div>
+              )}
+            </div>
+
             <div className="flex gap-3">
               <button
-                onClick={() => { setStep("generate"); setPreviewUrl(null); setFile(null); setShelbyResult(null); setTitle(""); setPrompt(""); }}
+                onClick={() => { setStep("generate"); setPreviewUrl(null); setFile(null); setShelbyResult(null); setMintTxHash(null); setTitle(""); setPrompt(""); }}
                 className="flex-1 rounded-xl border border-[#4D3826] py-2.5 text-sm font-semibold text-[#c8a48e] hover:bg-[#4D3826] transition"
               >
                 Mint Another
