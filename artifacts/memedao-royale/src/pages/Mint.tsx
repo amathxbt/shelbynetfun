@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
-import { AccountAuthenticator, Deserializer, SimpleTransaction } from "@aptos-labs/ts-sdk";
+import { AccountAddress, AccountAuthenticator } from "@aptos-labs/ts-sdk";
+import { aptos, MODULE_ADDR, MODULE_NAME } from "../lib/aptos";
 import { useMemeStore } from "../store/memeStore";
 import { uploadToShelby } from "../lib/shelby";
 import { useToast } from "@/hooks/use-toast";
@@ -116,33 +117,37 @@ export default function Mint() {
     }
     setMinting(true);
     try {
-      // Step 1: ask the API server to build a fee-payer transaction
-      // The deployer pays gas in ShelbyUSD, user just signs as sender
-      const buildResp = await fetch(`${API_BASE}/api/mint/build`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          senderAddress: account.address.toString(),
-          title: title || "Untitled Meme",
-          objectId: shelbyResult.objectId,
-          proofHash: shelbyResult.proofHash,
-        }),
+      // Build the fee-payer transaction directly on the client.
+      // This is critical: passing a natively-built SimpleTransaction to Petra's
+      // signTransaction avoids the "rawTransaction in undefined" error that
+      // occurs when deserializing BCS bytes from the server.
+      const tx = await aptos.transaction.build.simple({
+        sender: AccountAddress.fromString(account.address.toString()),
+        withFeePayer: true,
+        data: {
+          function: `${MODULE_ADDR}::${MODULE_NAME}::mint_meme`,
+          typeArguments: [],
+          functionArguments: [
+            MODULE_ADDR,
+            title || "Untitled Meme",
+            shelbyResult.objectId,
+            shelbyResult.proofHash,
+          ],
+        },
       });
-      if (!buildResp.ok) {
-        const err = await buildResp.json().catch(() => ({}));
-        throw new Error(err.error || "Failed to build transaction");
-      }
-      const { txBytes } = await buildResp.json() as { txBytes: string };
 
-      // Step 2: deserialize the transaction and have Petra sign it as sender only
-      const rawBytes = Uint8Array.from(atob(txBytes), (c) => c.charCodeAt(0));
-      const tx = SimpleTransaction.deserialize(new Deserializer(rawBytes));
+      // Set deployer as fee payer — they cover gas in ShelbyUSD
+      tx.feePayerAddress = AccountAddress.fromString(MODULE_ADDR);
 
-      const senderAuthenticator = await signTransaction(tx);
-      const authBytes = (senderAuthenticator as AccountAuthenticator).bcsToBytes();
-      const senderAuthBytes = btoa(String.fromCharCode(...authBytes));
+      // Petra signs as sender only (no gas cost for the user)
+      const senderAuth = await signTransaction(tx);
 
-      // Step 3: send both back to API server — it signs as fee payer and submits
+      // Serialize tx + sender signature, send to API server for fee-payer co-sign + submit
+      const txBytes = btoa(String.fromCharCode(...tx.bcsToBytes()));
+      const senderAuthBytes = btoa(
+        String.fromCharCode(...(senderAuth as AccountAuthenticator).bcsToBytes())
+      );
+
       const submitResp = await fetch(`${API_BASE}/api/mint/submit`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
