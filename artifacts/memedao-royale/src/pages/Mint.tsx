@@ -5,7 +5,8 @@ import { uploadToShelby } from "../lib/shelby";
 import { MODULE_ADDR } from "../lib/aptos";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
-import { Upload, Wand2, Loader2, CheckCircle2, Shield, Zap } from "lucide-react";
+import { Upload, Wand2, Loader2, CheckCircle2, Shield, Zap, AlertTriangle } from "lucide-react";
+import { useIsCorrectNetwork } from "../components/NetworkWarning";
 import type { Meme } from "../lib/types";
 
 type Step = "generate" | "upload" | "mint" | "done";
@@ -15,6 +16,7 @@ export default function Mint() {
   const { addMeme, memes, fetchFromChain } = useMemeStore();
   const { toast } = useToast();
   const [, navigate] = useLocation();
+  const isCorrectNetwork = useIsCorrectNetwork();
 
   const [step, setStep] = useState<Step>("generate");
   const [prompt, setPrompt] = useState("");
@@ -267,13 +269,34 @@ export default function Mint() {
               <div className="text-[#c8a48e] break-all">Object ID: {shelbyResult.objectId}</div>
               <div className="text-[#c8a48e] break-all">Proof: {shelbyResult.proofHash.slice(0, 48)}...</div>
             </div>
+
+            {connected && !isCorrectNetwork && (
+              <div className="flex items-start gap-2.5 rounded-xl border border-amber-500/50 bg-amber-900/40 p-3.5">
+                <AlertTriangle size={16} className="text-amber-400 mt-0.5 shrink-0" />
+                <div className="space-y-1">
+                  <p className="text-sm font-bold text-amber-300">Wrong network — switch to Devnet</p>
+                  <p className="text-xs text-amber-200/80">
+                    Open Petra → tap the network badge at the top → select{" "}
+                    <span className="font-bold text-amber-400">Devnet</span>.
+                    The contract lives on Devnet only.
+                  </p>
+                </div>
+              </div>
+            )}
+
             <button
               onClick={handleMint}
-              disabled={minting || !connected}
-              className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#F472B6] py-3 text-sm font-bold text-[#2B1E0E] transition hover:bg-[#EC4899] disabled:opacity-50"
+              disabled={minting || !connected || !isCorrectNetwork}
+              className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#F472B6] py-3 text-sm font-bold text-[#2B1E0E] transition hover:bg-[#EC4899] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {minting ? <Loader2 size={16} className="animate-spin" /> : <Zap size={16} />}
-              {minting ? "Minting on-chain..." : connected ? "Mint On-Chain" : "Connect Petra to Mint"}
+              {minting
+                ? "Minting on-chain..."
+                : !connected
+                ? "Connect Petra to Mint"
+                : !isCorrectNetwork
+                ? "Switch Petra to Devnet First"
+                : "Mint On-Chain"}
             </button>
           </div>
         )}

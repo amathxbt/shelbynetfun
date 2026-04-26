@@ -1,5 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { WalletConnect } from "./WalletConnect";
+import { NetworkWarning } from "./NetworkWarning";
 import { Zap, Menu, X } from "lucide-react";
 import { useState } from "react";
 
@@ -17,6 +18,7 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-[#4D3826] bg-[#2B1E0E]/95 backdrop-blur shadow-lg shadow-black/30">
+      <NetworkWarning />
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
         <Link href="/" className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#F472B6] shadow-sm shadow-[#F472B640]">
