@@ -38,6 +38,6 @@ externalPort = 3001
 [userenv]
 
 [userenv.shared]
-SHELBY_API_URL = "https://api.shelbynet.shelby.xyz/shelby"
+SHELBY_API_URL = "https://api.shelbynet.shelby.xyz"
 SHELBY_API_KEY = "AG-MR5SFEFY8BSVMEMVG9YETVQBZJJ2QYEPF"
 SHELBY_ACCOUNT_ADDRESS = "0xa57871e9081ed8f5a92c445c3941d16e3ad05a1f6549b3a6bfba32ec390f28fe"
