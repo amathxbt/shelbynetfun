@@ -10,8 +10,6 @@ memedao = "_"
 memedao = "0xCAFE"
 
 [dependencies.AptosFramework]
-git = "https://github.com/aptos-labs/aptos-core.git"
-rev = "main"
-subdir = "aptos-move/framework/aptos-framework"
+local = "/tmp/aptos-fw/aptos-move/framework/aptos-framework"
 
 [dev-dependencies]

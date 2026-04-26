@@ -16,12 +16,12 @@ import { Network } from "@aptos-labs/ts-sdk";
 const queryClient = new QueryClient();
 
 const SHELBYNET_CONFIG = {
-  network: Network.TESTNET,
+  network: Network.DEVNET,
 };
 
 function Router() {
   return (
-    <div className="min-h-screen bg-[#f8f7f4]">
+    <div className="min-h-screen bg-[#2B1E0E]">
       <Navbar />
       <main>
         <Switch>

@@ -24,11 +24,9 @@
   --color-accent-foreground: hsl(var(--accent-foreground));
   --color-destructive: hsl(var(--destructive));
   --color-destructive-foreground: hsl(var(--destructive-foreground));
-  --color-shelby-coral: #d66868;
-  --color-shelby-lime: #c1d848;
-  --color-shelby-teal: #6dd6ce;
-  --color-shelby-purple: #af85db;
-  --color-shelby-green: #86d883;
+  --color-shelby-pink: #F472B6;
+  --color-shelby-brown: #2B1E0E;
+  --color-shelby-card: #372818;
   --font-sans: var(--app-font-sans);
   --font-mono: var(--app-font-mono);
   --radius-sm: calc(var(--radius) - 4px);
@@ -38,55 +36,32 @@
 }
 
 :root {
-  --background: 0 0% 98%;
-  --foreground: 220 15% 12%;
-  --border: 220 13% 90%;
-  --input: 220 13% 90%;
-  --ring: 0 55% 63%;
-  --card: 0 0% 100%;
-  --card-foreground: 220 15% 12%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 220 15% 12%;
-  --primary: 0 55% 63%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 74 65% 56%;
-  --secondary-foreground: 74 40% 15%;
-  --muted: 220 13% 95%;
-  --muted-foreground: 220 10% 45%;
-  --accent: 176 53% 63%;
-  --accent-foreground: 176 40% 12%;
-  --destructive: 0 84% 60%;
+  /* Shelby dark brown + hot pink theme */
+  --background: 28 58% 11%;       /* #2B1E0E warm dark brown */
+  --foreground: 30 60% 95%;       /* #FDF0E4 warm off-white */
+  --border: 28 40% 22%;           /* #4D3826 brown border */
+  --input: 28 40% 22%;
+  --ring: 330 85% 70%;            /* hot pink ring */
+  --card: 28 50% 14%;             /* #372818 card bg */
+  --card-foreground: 30 60% 95%;
+  --popover: 28 55% 12%;
+  --popover-foreground: 30 60% 95%;
+  --primary: 330 85% 70%;         /* #F472B6 Shelby hot pink */
+  --primary-foreground: 28 58% 8%;
+  --secondary: 28 45% 20%;
+  --secondary-foreground: 30 60% 90%;
+  --muted: 28 40% 18%;
+  --muted-foreground: 30 30% 60%;
+  --accent: 330 80% 65%;
+  --accent-foreground: 28 58% 8%;
+  --destructive: 0 72% 55%;
   --destructive-foreground: 0 0% 100%;
   --app-font-sans: 'Inter', system-ui, sans-serif;
   --app-font-mono: 'JetBrains Mono', monospace;
-  --radius: 0.625rem;
-  --shelby-coral: #d66868;
-  --shelby-lime: #c1d848;
-  --shelby-teal: #6dd6ce;
-  --shelby-purple: #af85db;
-  --shelby-green: #86d883;
-}
-
-.dark {
-  --background: 220 15% 8%;
-  --foreground: 0 0% 96%;
-  --border: 220 13% 18%;
-  --input: 220 13% 18%;
-  --ring: 0 55% 63%;
-  --card: 220 15% 11%;
-  --card-foreground: 0 0% 96%;
-  --popover: 220 15% 10%;
-  --popover-foreground: 0 0% 96%;
-  --primary: 0 55% 63%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 74 65% 50%;
-  --secondary-foreground: 74 40% 10%;
-  --muted: 220 13% 16%;
-  --muted-foreground: 220 10% 55%;
-  --accent: 176 53% 55%;
-  --accent-foreground: 176 40% 8%;
-  --destructive: 0 72% 50%;
-  --destructive-foreground: 0 0% 100%;
+  --radius: 0.75rem;
+  --shelby-pink: #F472B6;
+  --shelby-brown: #2B1E0E;
+  --shelby-card: #372818;
 }
 
 @layer base {
@@ -96,29 +71,35 @@
 
 @layer utilities {
   .shelby-gradient {
-    background: linear-gradient(135deg, #d66868 0%, #af85db 40%, #6dd6ce 70%, #c1d848 100%);
+    background: linear-gradient(135deg, #F472B6 0%, #EC4899 50%, #DB2777 100%);
   }
   .shelby-text-gradient {
-    background: linear-gradient(90deg, #d66868, #af85db, #6dd6ce);
+    background: linear-gradient(90deg, #F472B6, #FBCFE8, #F472B6);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
   .card-glow:hover {
-    box-shadow: 0 0 0 2px #6dd6ce44, 0 8px 32px #d6686820;
+    box-shadow: 0 0 0 1px #F472B644, 0 8px 32px #F472B620;
   }
   .legendary-glow {
-    box-shadow: 0 0 0 2px #c1d848, 0 0 24px #c1d84866, 0 8px 32px #c1d84833;
+    box-shadow: 0 0 0 2px #F472B6, 0 0 24px #F472B666, 0 8px 32px #F472B633;
     animation: legendary-pulse 2s ease-in-out infinite;
   }
   @keyframes legendary-pulse {
-    0%, 100% { box-shadow: 0 0 0 2px #c1d848, 0 0 24px #c1d84866, 0 8px 32px #c1d84833; }
-    50% { box-shadow: 0 0 0 3px #c1d848, 0 0 40px #c1d848aa, 0 8px 48px #c1d84866; }
+    0%, 100% { box-shadow: 0 0 0 2px #F472B6, 0 0 24px #F472B666, 0 8px 32px #F472B633; }
+    50% { box-shadow: 0 0 0 3px #F472B6, 0 0 40px #F472B6aa, 0 8px 48px #F472B666; }
   }
   .badge-proof-lord {
-    background: linear-gradient(90deg, #c1d848, #86d883);
-    color: #1a2a0a;
+    background: linear-gradient(90deg, #F472B6, #EC4899);
+    color: #fff;
     font-weight: 700;
     letter-spacing: 0.05em;
+  }
+  .shelby-btn {
+    @apply bg-[#F472B6] hover:bg-[#EC4899] text-[#2B1E0E] font-bold transition-all active:scale-95;
+  }
+  .shelby-btn-outline {
+    @apply border border-[#F472B6] text-[#F472B6] hover:bg-[#F472B615] font-semibold transition-all;
   }
 }

@@ -32,7 +32,7 @@ export function MemeCard({ meme }: MemeCardProps) {
 
   async function handleVote() {
     if (!connected || !account) {
-      toast({ title: "Connect wallet to vote", variant: "destructive" });
+      toast({ title: "Connect Petra wallet to vote", variant: "destructive" });
       return;
     }
     if (alreadyVoted) {
@@ -63,8 +63,8 @@ export function MemeCard({ meme }: MemeCardProps) {
 
   return (
     <div
-      className={`group relative overflow-hidden rounded-2xl border bg-card transition-all duration-200 card-glow ${
-        meme.isLegendary ? "legendary-glow border-[#c1d848]" : "border-border"
+      className={`group relative overflow-hidden rounded-2xl border bg-[#372818] transition-all duration-200 card-glow ${
+        meme.isLegendary ? "legendary-glow border-[#F472B6]" : "border-[#4D3826]"
       }`}
     >
       {meme.isLegendary && (
@@ -74,13 +74,13 @@ export function MemeCard({ meme }: MemeCardProps) {
         </div>
       )}
       {isRemix && (
-        <div className="absolute top-3 right-3 z-10 flex items-center gap-1 rounded-full bg-[#af85db22] border border-[#af85db] px-2 py-0.5 text-[10px] font-semibold text-[#af85db]">
+        <div className="absolute top-3 right-3 z-10 flex items-center gap-1 rounded-full bg-[#F472B620] border border-[#F472B6] px-2 py-0.5 text-[10px] font-semibold text-[#F472B6]">
           <GitFork size={10} />
           Remix of #{meme.parentId}
         </div>
       )}
 
-      <div className="aspect-square overflow-hidden bg-muted">
+      <div className="aspect-square overflow-hidden bg-[#2B1E0E]">
         {meme.imageUrl ? (
           <img
             src={meme.imageUrl}
@@ -88,18 +88,18 @@ export function MemeCard({ meme }: MemeCardProps) {
             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center shelby-gradient opacity-60">
+          <div className="flex h-full w-full items-center justify-center bg-[#F472B615]">
             <span className="text-4xl">🎭</span>
           </div>
         )}
       </div>
 
       <div className="p-4">
-        <h3 className="font-semibold text-foreground line-clamp-2 leading-snug mb-1">
+        <h3 className="font-semibold text-[#FDF0E4] line-clamp-2 leading-snug mb-1">
           {meme.title}
         </h3>
 
-        <div className="mb-3 flex items-center gap-2 text-xs text-muted-foreground">
+        <div className="mb-3 flex items-center gap-2 text-xs text-[#c8a48e]">
           <span title={meme.creator} className="font-mono">
             {shortAddr(meme.creator)}
           </span>
@@ -108,8 +108,8 @@ export function MemeCard({ meme }: MemeCardProps) {
           {timeAgo(meme.timestampUs)}
         </div>
 
-        <div className="mb-3 rounded-lg bg-muted p-2 font-mono text-[10px] text-muted-foreground break-all">
-          <Shield size={10} className="inline mr-1" />
+        <div className="mb-3 rounded-lg bg-[#2B1E0E] p-2 font-mono text-[10px] text-[#c8a48e] break-all border border-[#4D3826]">
+          <Shield size={10} className="inline mr-1 text-[#F472B6]" />
           {meme.proofHash.slice(0, 32)}…
         </div>
 
@@ -117,10 +117,10 @@ export function MemeCard({ meme }: MemeCardProps) {
           <button
             onClick={handleVote}
             disabled={alreadyVoted}
-            className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-semibold transition active:scale-95 ${
+            className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-bold transition active:scale-95 ${
               alreadyVoted
-                ? "bg-muted text-muted-foreground cursor-not-allowed"
-                : "bg-[#d66868] text-white hover:bg-[#c45858]"
+                ? "bg-[#4D3826] text-[#c8a48e] cursor-not-allowed"
+                : "bg-[#F472B6] text-[#2B1E0E] hover:bg-[#EC4899]"
             }`}
           >
             <ThumbsUp size={13} />
@@ -129,7 +129,7 @@ export function MemeCard({ meme }: MemeCardProps) {
 
           <button
             onClick={() => navigate(`/remix/${meme.id}`)}
-            className="flex items-center gap-1 rounded-full border border-[#af85db] px-3 py-1.5 text-xs font-medium text-[#af85db] transition hover:bg-[#af85db15]"
+            className="flex items-center gap-1 rounded-full border border-[#F472B6]/50 px-3 py-1.5 text-xs font-medium text-[#F472B6] transition hover:bg-[#F472B615]"
           >
             <GitFork size={12} />
             Remix
