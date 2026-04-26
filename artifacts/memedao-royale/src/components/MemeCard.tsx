@@ -44,11 +44,8 @@ export function MemeCard({ meme }: MemeCardProps) {
         data: {
           function: `${MODULE_ADDR}::meme_dao_royale::vote`,
           typeArguments: [],
-          functionArguments: [
-            account.address,
-            MODULE_ADDR,
-            meme.id.toString(),
-          ],
+          // caller (signer) is implicit — only pass registry address + meme_id
+          functionArguments: [MODULE_ADDR, meme.id.toString()],
         },
       });
       vote(meme.id);

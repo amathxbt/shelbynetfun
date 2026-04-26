@@ -174,6 +174,18 @@ module memedao::meme_dao_royale {
         vector::length(&borrow_global<Registry>(registry).memes)
     }
 
+    // Returns (id, creator, title, image_url, proof_hash, vote_count, parent_id, is_legendary)
+    #[view]
+    public fun get_meme_by_index(
+        registry: address,
+        index: u64,
+    ): (u64, address, vector<u8>, vector<u8>, vector<u8>, u64, u64, bool) acquires Registry {
+        assert!(exists<Registry>(registry), E_NOT_INITIALIZED);
+        let reg = borrow_global<Registry>(registry);
+        let m = vector::borrow(&reg.memes, index);
+        (m.id, m.creator, m.title, m.image_url, m.proof_hash, m.vote_count, m.parent_id, m.is_legendary)
+    }
+
     #[view]
     public fun has_voted(registry: address, voter: address, meme_id: u64): bool acquires Registry {
         assert!(exists<Registry>(registry), E_NOT_INITIALIZED);
