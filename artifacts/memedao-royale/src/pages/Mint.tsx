@@ -75,8 +75,8 @@ export default function Mint() {
   async function handleUpload() {
     if (!previewUrl && !file) return;
     setUploading(true);
+    let uploadFile: File | null = file;
     try {
-      let uploadFile = file;
       if (!uploadFile && previewUrl) {
         const resp = await fetch(previewUrl);
         const blob = await resp.blob();
@@ -88,8 +88,22 @@ export default function Mint() {
       if (result.url.startsWith("blob:")) setPreviewUrl(result.url);
       setStep("mint");
       toast({ title: "Uploaded to Shelby ✓", description: `Object: ${result.objectId.slice(0, 20)}...` });
-    } catch {
-      toast({ title: "Upload failed", variant: "destructive" });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error("Upload error:", msg);
+      // If blob already exists, it's still a valid upload — proceed with the existing proof hash
+      if (msg.includes("409") || msg.includes("already exists")) {
+        toast({ title: "Upload note", description: "Blob already exists on Shelby — using existing proof.", variant: "default" });
+        if (uploadFile) {
+          const { computeProofHash } = await import("../lib/shelby");
+          const ph = await computeProofHash(uploadFile);
+          const blobName = `meme_${Date.now()}_${uploadFile.name.replace(/[^a-z0-9._-]/gi, "_")}`;
+          setShelbyResult({ objectId: blobName, proofHash: ph, url: `shelby://${blobName}` });
+          setStep("mint");
+        }
+        return;
+      }
+      toast({ title: "Upload failed", description: msg.slice(0, 120), variant: "destructive" });
     } finally {
       setUploading(false);
     }
@@ -263,7 +277,7 @@ export default function Mint() {
             className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#F472B6] py-3 text-sm font-bold text-[#2B1E0E] transition hover:bg-[#EC4899] disabled:opacity-50"
           >
             {uploading ? <Loader2 size={16} className="animate-spin" /> : <Shield size={16} />}
-            {uploading ? "Uploading to Shelby..." : "Upload & Get Proof Hash"}
+            {uploading ? "Uploading to Shelby… (may take ~30s)" : "Upload & Get Proof Hash"}
           </button>
         )}
 
