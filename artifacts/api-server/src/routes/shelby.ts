@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
 import multer from "multer";
 import { Account, Ed25519PrivateKey, Network } from "@aptos-labs/ts-sdk";
-import { ShelbyNodeClient } from "@shelby-protocol/sdk/node";
+import { ShelbyNodeClient, getShelbyBlobExplorerUrl } from "@shelby-protocol/sdk/node";
 
 const router: IRouter = Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } });
@@ -53,8 +53,9 @@ router.post("/shelby/upload", upload.single("file"), async (req, res) => {
     });
 
     const objectId = blobName;
+    // Use the correct Shelby explorer URL: https://explorer.shelby.xyz/shelbynet/account/{addr}/blob/{name}
     const storageUrl = SHELBY_ACCOUNT_ADDRESS
-      ? `https://explorer.shelbynet.shelby.xyz/blobs/${SHELBY_ACCOUNT_ADDRESS}/${blobName}`
+      ? getShelbyBlobExplorerUrl("shelbynet", SHELBY_ACCOUNT_ADDRESS, blobName)
       : `shelby://${blobName}`;
 
     res.json({

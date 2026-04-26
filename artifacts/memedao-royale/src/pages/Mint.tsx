@@ -336,7 +336,7 @@ export default function Mint() {
             <div className="rounded-xl border border-[#4D3826] bg-[#2B1E0E] divide-y divide-[#4D3826] overflow-hidden text-sm">
               {mintTxHash && (
                 <a
-                  href={`https://explorer.shelbynet.shelby.xyz/txn/${mintTxHash}`}
+                  href={`https://explorer.shelby.xyz/shelbynet/txn/${mintTxHash}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-between px-4 py-3 hover:bg-[#372818] transition group"
