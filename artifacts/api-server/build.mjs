@@ -29,6 +29,12 @@ async function buildAll() {
     // - use path traversal to read files (e.g. @google-cloud/secret-manager loads sibling .proto files)
     external: [
       "*.node",
+      "@aptos-labs/ts-sdk",
+      "@shelby-protocol/sdk",
+      "@shelby-protocol/sdk/node",
+      "@shelby-protocol/clay-codes",
+      "@shelby-protocol/reed-solomon",
+      "got",
       "sharp",
       "better-sqlite3",
       "sqlite3",

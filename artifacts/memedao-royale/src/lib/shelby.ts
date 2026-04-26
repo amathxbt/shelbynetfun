@@ -1,12 +1,8 @@
 /**
- * Shelby SDK integration layer.
+ * Shelby storage integration.
  *
- * In production, swap the placeholder functions for real
- * @shelby-protocol/sdk calls once the package is available.
- *
- * Upload flow:
- *  1. uploadToShelby(file)      → { objectId, proofHash }
- *  2. Pass objectId + proofHash to the Move mint_meme entry function.
+ * Uploads go through the API server (which holds the private key server-side).
+ * The API server calls @shelby-protocol/sdk and returns the blob name + proof hash.
  */
 
 export interface ShelbyUploadResult {
@@ -15,41 +11,9 @@ export interface ShelbyUploadResult {
   url: string;
 }
 
-const SHELBY_API_KEY = import.meta.env.VITE_SHELBY_API_KEY || "";
-const SHELBY_API_URL =
-  import.meta.env.VITE_SHELBY_API_URL || "https://api.shelby.network";
+const API_BASE = import.meta.env.VITE_API_URL || "";
 
-/**
- * Upload a file (image) to Shelby decentralised storage.
- * Returns the object ID and its SHA-256 proof hash.
- */
-export async function uploadToShelby(file: File): Promise<ShelbyUploadResult> {
-  if (!SHELBY_API_KEY) {
-    return mockUpload(file);
-  }
-
-  const formData = new FormData();
-  formData.append("file", file);
-
-  const resp = await fetch(`${SHELBY_API_URL}/v1/upload`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${SHELBY_API_KEY}` },
-    body: formData,
-  });
-
-  if (!resp.ok) {
-    throw new Error(`Shelby upload failed: ${resp.statusText}`);
-  }
-
-  const data = await resp.json();
-  return {
-    objectId: data.object_id,
-    proofHash: data.proof_hash,
-    url: data.url,
-  };
-}
-
-/** Compute a deterministic SHA-256 hex string for provenance. */
+/** Compute SHA-256 hex of a file for local proof hash (matches server-side). */
 export async function computeProofHash(file: File): Promise<string> {
   const buf = await file.arrayBuffer();
   const digest = await crypto.subtle.digest("SHA-256", buf);
@@ -58,10 +22,40 @@ export async function computeProofHash(file: File): Promise<string> {
     .join("");
 }
 
-async function mockUpload(file: File): Promise<ShelbyUploadResult> {
-  await new Promise((r) => setTimeout(r, 800));
-  const hash = await computeProofHash(file);
-  const objectId = `shelby_${hash.slice(0, 16)}`;
-  const url = URL.createObjectURL(file);
-  return { objectId, proofHash: hash, url };
+/**
+ * Upload a file to Shelby decentralised storage via the API server.
+ * Falls back to a mock if the API server is unreachable.
+ */
+export async function uploadToShelby(file: File): Promise<ShelbyUploadResult> {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  try {
+    const resp = await fetch(`${API_BASE}/api/shelby/upload`, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!resp.ok) {
+      const body = await resp.json().catch(() => ({}));
+      const detail = (body as { detail?: string }).detail || resp.statusText;
+      throw new Error(`Shelby upload failed (${resp.status}): ${detail}`);
+    }
+
+    const data = await resp.json() as {
+      object_id: string;
+      proof_hash: string;
+      url: string;
+      blob_name: string;
+    };
+
+    return {
+      objectId: data.object_id,
+      proofHash: data.proof_hash,
+      url: data.url,
+    };
+  } catch (err) {
+    console.error("uploadToShelby error:", err);
+    throw err;
+  }
 }
