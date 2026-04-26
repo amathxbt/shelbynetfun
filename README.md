@@ -1,66 +1,69 @@
-# 🎭 MemeDAO Royale — shelbynetfun
+# MemeDAO Royale — shelbynetfun
 
 > **The first fully on-chain AI Meme Provenance Arena on Shelbynet + Aptos**
 
-Generate dank memes with AI, upload them to Shelby decentralised storage, mint cryptographically-proven Move resources on Shelbynet, vote once-per-wallet, auto-earn legendary badges, and remix anyone's meme — all without touching a database.
+Generate memes with AI, upload them to Shelby decentralised storage, mint cryptographically-proven Move resources on Shelbynet, vote once-per-wallet, auto-earn legendary badges, and remix anyone's meme — all without touching a database.
 
-[![Live on Shelbynet](https://img.shields.io/badge/Network-Shelbynet-d66868?style=flat-square)](https://shelby.network)
+[![Live on Shelbynet](https://img.shields.io/badge/Network-Shelbynet-d66868?style=flat-square)](https://shelby.xyz)
 [![Move](https://img.shields.io/badge/Contracts-Move-af85db?style=flat-square)](./contracts)
 [![React](https://img.shields.io/badge/Frontend-React%2019%20%2B%20Vite-6dd6ce?style=flat-square)](./artifacts/memedao-royale)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 
 ---
 
-## ✨ Features
+## Features
 
 | Feature | On-chain? | Description |
 |---|---|---|
-| 🖼️ AI Meme Generation | — | Replicate/Flux generates from your prompt |
-| 📦 Shelby Upload | ✅ | Content stored in Shelby; SHA-256 proof hash captured |
-| 🪙 Mint Meme | ✅ | Move resource stores object ID + proof + creator + timestamp |
-| 🗳️ Vote (1 per wallet) | ✅ | VoterRecord resource prevents double-voting |
-| 🏆 Legendary Badges | ✅ | Auto-minted when vote count hits thresholds |
-| 🔱 Remix / Fork | ✅ | New Meme resource references parent ID on-chain |
-| 🏛️ Hall of Fame | ✅ | Read from on-chain view functions via Aptos indexer |
+| AI Meme Generation | — | gpt-image-1 generates from your prompt (runs server-side, no key needed client-side) |
+| Shelby Upload | Yes | Blob stored on Shelby decentralised storage; SHA-256 proof hash captured |
+| Mint Meme | Yes | Move resource stores object ID + proof hash + creator + timestamp |
+| Sponsored Minting | Yes | Deployer pays gas in ShelbyUSD — users need zero APT |
+| Vote (1 per wallet) | Yes | VoterRecord resource prevents double-voting |
+| Legendary Badges | Yes | Auto-minted when vote count hits thresholds |
+| Remix / Fork | Yes | New Meme resource references parent ID on-chain |
+| Hall of Fame | Yes | Read from on-chain view functions |
 
 ---
 
-## 🗂️ Monorepo Structure
+## Monorepo Structure
 
 ```
 shelbynetfun/
 ├── contracts/                  # Aptos Move modules
 │   ├── Move.toml
 │   ├── sources/
-│   │   ├── MemeDAORoyale.move  # Core: mint, vote, remix
-│   │   ├── Voting.move         # One-vote-per-wallet sentry
-│   │   └── Badge.move          # Auto-minted badge tiers
-│   ├── scripts/
-│   │   └── mint_and_vote_demo.move
+│   │   ├── MemeDAORoyale.move  # Core: mint, vote, remix, badges
+│   │   └── ...
 │   └── deploy.sh               # One-command Shelbynet deployment
 ├── artifacts/
-│   └── memedao-royale/         # React 19 + Vite frontend
+│   ├── memedao-royale/         # React 19 + Vite frontend
+│   │   └── src/
+│   │       ├── pages/          # Home, Arena, Mint, Remix, Leaderboard, MyMemes
+│   │       ├── components/     # Navbar, WalletConnect, MemeCard, NetworkWarning
+│   │       ├── lib/            # aptos.ts, shelby.ts, types.ts
+│   │       └── store/          # memeStore.ts (Zustand)
+│   └── api-server/             # Express API server (port 8080)
 │       └── src/
-│           ├── pages/          # Home, Arena, Mint, Remix, Leaderboard, MyMemes
-│           ├── components/     # Navbar, WalletConnect, MemeCard, …
-│           ├── lib/            # aptos.ts, shelby.ts, types.ts
-│           └── store/          # memeStore.ts (Zustand)
-├── .env.example
+│           └── routes/
+│               ├── generate.ts # AI image generation via gpt-image-1
+│               ├── shelby.ts   # Shelby blob upload + proof hash
+│               └── mint.ts     # Fee-payer (sponsored) transaction builder
 └── README.md
 ```
 
 ---
 
-## ⚡ Quick Start (Local Dev)
+## Quick Start (Local Dev)
 
-### 1 — Prerequisites
+### Prerequisites
 
 ```bash
 node >= 20
 pnpm >= 9
-Aptos CLI  →  https://aptos.dev/tools/aptos-cli/install-cli/
 ```
 
-### 2 — Clone & Install
+### Clone and Install
 
 ```bash
 git clone https://github.com/amathxbt/shelbynetfun.git
@@ -68,38 +71,52 @@ cd shelbynetfun
 pnpm install
 ```
 
-### 3 — Configure environment
+### Configure environment
 
 ```bash
+# API server
+cp artifacts/api-server/.env.example artifacts/api-server/.env
+# Fill in SHELBY_DEPLOYER_PRIVATE_KEY, SHELBY_ACCOUNT_ADDRESS
+# AI_INTEGRATIONS_OPENAI_BASE_URL and AI_INTEGRATIONS_OPENAI_API_KEY (or set OPENAI_API_KEY)
+
+# Frontend
 cp .env.example artifacts/memedao-royale/.env
-# Edit the file — fill in VITE_MODULE_ADDR after you deploy contracts
+# Fill in VITE_MODULE_ADDR after you deploy contracts
 ```
 
-### 4 — Run the frontend
+### Run both services
 
 ```bash
+# Terminal 1 — API server (port 8080)
+pnpm --filter @workspace/api-server run dev
+
+# Terminal 2 — Frontend
 pnpm --filter @workspace/memedao-royale run dev
-# Opens at http://localhost:<PORT>
 ```
 
 ---
 
-## 🔑 Environment Variables
+## Environment Variables
 
-Copy `.env.example` → `artifacts/memedao-royale/.env` and fill in:
+### API Server (`artifacts/api-server/.env`)
 
 | Variable | Required | Description |
 |---|---|---|
-| `VITE_MODULE_ADDR` | ✅ | Your deployer address (set after deploy) |
-| `VITE_APTOS_NODE_URL` | ✅ | Shelbynet full-node RPC |
-| `VITE_APTOS_INDEXER_URL` | optional | Indexer GraphQL for live reads |
-| `VITE_SHELBY_API_KEY` | ✅ | From https://app.shelby.network/dashboard |
-| `VITE_SHELBY_API_URL` | optional | Defaults to https://api.shelby.network |
-| `VITE_REPLICATE_API_KEY` | optional | AI image generation (blank = demo mode) |
+| `SHELBY_DEPLOYER_PRIVATE_KEY` | Yes | Ed25519 private key of the deployer account |
+| `SHELBY_ACCOUNT_ADDRESS` | Yes | Deployer account address (0x...) |
+| `SHELBY_API_KEY` | Yes | From https://app.shelby.xyz/dashboard |
+| `OPENAI_API_KEY` | Yes | For AI image generation (gpt-image-1) |
+
+### Frontend (`artifacts/memedao-royale/.env`)
+
+| Variable | Required | Description |
+|---|---|---|
+| `VITE_MODULE_ADDR` | Yes | Deployer address (same as `SHELBY_ACCOUNT_ADDRESS`) |
+| `VITE_APTOS_NODE_URL` | Yes | Shelbynet full-node RPC: `https://api.shelbynet.shelby.xyz/v1` |
 
 ---
 
-## 📦 Deploy Move Contracts to Shelbynet
+## Deploy Move Contracts to Shelbynet
 
 ### Step 1 — Get your private key ready
 
@@ -108,112 +125,99 @@ export PRIVATE_KEY=0xYOUR_PRIVATE_KEY_HERE
 export DEPLOYER_ADDR=0xYOUR_ACCOUNT_ADDRESS
 ```
 
-> ⚠️ Never commit your private key. Use environment variables only.
+> Never commit your private key. Use environment variables only.
 
 ### Step 2 — Fund your account
 
-You need APT for gas + ShelbyUSD for storage payments.
-
-| Token | Faucet |
+| Token | Where to get it |
 |---|---|
-| **APT** (gas) | https://aptos.dev/en/network/faucet (choose Shelbynet) |
-| **ShelbyUSD** (storage) | https://faucet.shelby.network |
-| **Shelbynet explorer** | https://explorer.shelbynet.shelby.network |
+| APT (gas) | https://aptos.dev/en/network/faucet (choose Shelbynet) |
+| ShelbyUSD (storage) | https://faucet.shelby.xyz |
+| Explorer | https://explorer.shelby.xyz/shelbynet |
 
-### Step 3 — Run the deploy script
+### Step 3 — Deploy
 
 ```bash
 chmod +x contracts/deploy.sh
 DEPLOYER_ADDR=$DEPLOYER_ADDR PRIVATE_KEY=$PRIVATE_KEY bash contracts/deploy.sh
 ```
 
-This will:
-1. Compile the Move modules
-2. Publish the package to Shelbynet
-3. Call `initialize()` to set up the registry
-4. Print your `VITE_MODULE_ADDR` to copy into `.env`
+This compiles the Move modules, publishes to Shelbynet, calls `initialize()`, and prints your deployer address.
 
-### Step 4 — Update your frontend .env
+### Step 4 — Update your .env
 
 ```bash
-# paste the deployer address printed by deploy.sh
 VITE_MODULE_ADDR=0x<YOUR_DEPLOYER_ADDR>
 ```
 
 ---
 
-## 🌐 Deploy Frontend to Vercel
-
-### One-click
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/amathxbt/shelbynetfun)
-
-### CLI
-
-```bash
-pnpm --filter @workspace/memedao-royale run build
-# Output lands in artifacts/memedao-royale/dist/public
-
-npx vercel deploy artifacts/memedao-royale/dist/public --prod
-```
-
-Set all `VITE_*` environment variables in Vercel Dashboard → Project → Settings → Environment Variables.
-
----
-
-## 🏅 Badge Tiers (Auto-minted On-Chain)
+## Badge Tiers (Auto-minted On-Chain)
 
 | Badge | Votes needed | Emoji |
 |---|---|---|
-| **Proof Lord** | 10+ | 👑 |
-| **Meme Overlord** | 7+ | 🔥 |
-| **Fork Wizard** | 4+ | 🔱 |
-| **Shelby Sage** | 1+ | 🌊 |
-| **Hash Prophet** | — | ⚡ |
-| **Ngmi** | 0 | 😬 |
+| Proof Lord | 10+ | Crown |
+| Meme Overlord | 7+ | Fire |
+| Fork Wizard | 4+ | Trident |
+| Shelby Sage | 1+ | Wave |
+| Hash Prophet | — | Lightning |
+| Ngmi | 0 | Grimace |
 
-Badges are Move resources auto-minted into the creator's account whenever their meme crosses a threshold. Existing badges are automatically upgraded to a higher tier.
+Badges are Move resources auto-minted into the creator's account whenever their meme crosses a threshold. Existing badges automatically upgrade to a higher tier.
 
 ---
 
-## 🛠️ Contract Architecture
+## Contract Architecture
 
 ```
 MemeRegistry (deployer account)
-  └── meme_ids[]   — all minted IDs
-  └── next_id      — monotonic counter
+  ├── meme_ids[]   — all minted IDs
+  ├── next_id      — monotonic counter
   └── events       — MemeMinted, MemeVoted, MemeRemixed
 
 Meme (creator account)
-  └── shelby_object_id  — Shelby storage reference
-  └── proof_hash        — SHA-256 of content
-  └── creator           — address
-  └── parent_id         — 0 = original; N = remix of meme N
-  └── vote_count
+  ├── shelby_object_id  — Shelby storage reference
+  ├── proof_hash        — SHA-256 of content
+  ├── creator           — address
+  ├── parent_id         — 0 = original; N = remix of meme N
+  ├── vote_count
   └── is_legendary
 
-VoterRecord (voter account)    [from Voting.move]
+VoterRecord (voter account)
   └── voted_ids[]   — prevents double-voting
 
-Badge (creator account)        [from Badge.move]
+Badge (creator account)
   └── name / tier / meme_id / awarded_at
 ```
 
 ---
 
-## 🤝 Contributing
+## How Sponsored Minting Works
 
-PRs welcome! Join the Shelby Discord: https://discord.gg/shelbyprotocol
+Users need **zero APT** to mint. The flow:
+
+1. User fills in meme details and connects Petra wallet
+2. API server builds a fee-payer transaction (deployer account pays gas in ShelbyUSD)
+3. User signs as sender only (no gas cost)
+4. API server co-signs as fee-payer and submits
+5. Move contract stores the meme resource on-chain
+6. Explorer link returned: `https://explorer.shelby.xyz/shelbynet/txn/{hash}`
+
+---
+
+## Contributing
+
+PRs welcome!
 
 ```bash
 git checkout -b feat/my-feature
-# hack hack hack
+# make changes
 git push origin feat/my-feature
-# open a PR
+# open a PR against main
 ```
 
 ---
 
-## 📜 License
+## License
 
-MIT — free to fork, remix, and meme to the moon. 🚀
+MIT — free to fork, remix, and meme to the moon.
