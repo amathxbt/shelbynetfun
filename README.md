@@ -1,4 +1,4 @@
-# MemeDAO Royale — shelbynetfun
+# MemeDAO Royale shelbynetfun
 
 > **The first fully on-chain AI Meme Provenance Arena on Shelbynet + Aptos**
 
