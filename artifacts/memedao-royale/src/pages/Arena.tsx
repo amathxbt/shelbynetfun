@@ -11,6 +11,19 @@ export default function Arena() {
 
   useEffect(() => { fetchFromChain(); }, []);
 
+  // Pre-warm the server image cache as soon as the meme list loads.
+  // Kick off background fetch requests so blobs are cached server-side
+  // and subsequent renders show images immediately.
+  useEffect(() => {
+    if (memes.length === 0) return;
+    memes.forEach((m) => {
+      if (m.imageUrl) {
+        const img = new Image();
+        img.src = m.imageUrl;
+      }
+    });
+  }, [memes.length]);
+
   const sorted = [...memes].sort((a, b) => {
     if (sort === "votes") return b.voteCount - a.voteCount;
     if (sort === "newest") return b.timestampUs - a.timestampUs;

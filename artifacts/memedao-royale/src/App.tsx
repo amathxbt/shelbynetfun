@@ -15,9 +15,11 @@ import MyMemes from "@/pages/MyMemes";
 
 const queryClient = new QueryClient();
 
-// Shelbynet is a custom Aptos-compatible network — we don't pass a network
-// enum here so the wallet adapter doesn't reject Petra on Shelbynet.
-const SHELBYNET_CONFIG = {
+// Shelbynet is a custom Aptos-compatible network. The wallet adapter's
+// DappConfig requires `network` but the AptosConnect wallets reject CUSTOM —
+// cast to any so we can omit it without breaking other wallets (Petra).
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const SHELBYNET_CONFIG: any = {
   aptosConnectDappId: undefined,
 };
 

@@ -29,9 +29,8 @@ export default function Home() {
         </div>
 
         <h1 className="text-6xl font-black leading-tight tracking-tight mb-4">
-          <span className="shelby-text-gradient">MemeDAO</span>
-          <br />
-          <span className="text-[#FDF0E4]">Royale</span>
+          <span className="shelby-text-gradient">Shelbynet</span>
+          <span className="text-[#FDF0E4]">fun</span>
         </h1>
 
         <p className="mx-auto max-w-xl text-xl text-[#c8a48e] mb-8 leading-relaxed">

@@ -5,6 +5,7 @@ import type { Meme } from "../lib/types";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { MODULE_ADDR } from "../lib/aptos";
+import { useState, useEffect, useRef } from "react";
 
 interface MemeCardProps {
   meme: Meme;
@@ -21,6 +22,53 @@ function timeAgo(tsUs: number) {
   const hrs = Math.floor(mins / 60);
   if (hrs < 24) return `${hrs}h ago`;
   return `${Math.floor(hrs / 24)}d ago`;
+}
+
+const MAX_RETRIES = 3;
+const RETRY_DELAYS = [3000, 6000, 12000];
+
+function RetryImage({ src, alt }: { src: string; alt: string }) {
+  const [imgSrc, setImgSrc] = useState(src);
+  const [failed, setFailed] = useState(false);
+  const retryCount = useRef(0);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    setImgSrc(src);
+    setFailed(false);
+    retryCount.current = 0;
+  }, [src]);
+
+  useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current); }, []);
+
+  function handleError() {
+    if (retryCount.current >= MAX_RETRIES) {
+      setFailed(true);
+      return;
+    }
+    const delay = RETRY_DELAYS[retryCount.current] ?? 12000;
+    retryCount.current += 1;
+    timerRef.current = setTimeout(() => {
+      setImgSrc(`${src}${src.includes("?") ? "&" : "?"}_r=${retryCount.current}`);
+    }, delay);
+  }
+
+  if (failed) {
+    return (
+      <div className="flex h-full w-full items-center justify-center bg-[#F472B615]">
+        <span className="text-4xl">🎭</span>
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={imgSrc}
+      alt={alt}
+      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+      onError={handleError}
+    />
+  );
 }
 
 export function MemeCard({ meme }: MemeCardProps) {
@@ -79,11 +127,7 @@ export function MemeCard({ meme }: MemeCardProps) {
 
       <div className="aspect-square overflow-hidden bg-[#2B1E0E]">
         {meme.imageUrl ? (
-          <img
-            src={meme.imageUrl}
-            alt={meme.title}
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-          />
+          <RetryImage src={meme.imageUrl} alt={meme.title} />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-[#F472B615]">
             <span className="text-4xl">🎭</span>

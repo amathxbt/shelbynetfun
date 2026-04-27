@@ -25,7 +25,7 @@ export function Navbar() {
             <Zap size={16} className="text-[#2B1E0E]" />
           </div>
           <span className="font-black text-lg shelby-text-gradient hidden sm:block">
-            MemeDAO Royale
+            Shelbynetfun
           </span>
         </Link>
 

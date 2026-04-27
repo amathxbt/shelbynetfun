@@ -1,5 +1,6 @@
 import app from "./app";
 import { logger } from "./lib/logger";
+import { warmupBlobCache } from "./routes/shelby.js";
 
 const rawPort = process.env["PORT"];
 
@@ -22,4 +23,8 @@ app.listen(port, (err) => {
   }
 
   logger.info({ port }, "Server listening");
+
+  // Pre-cache all on-chain meme blobs in the background so first-load images
+  // are served instantly from memory without waiting for SDK downloads.
+  warmupBlobCache().catch((e) => logger.warn({ err: e }, "blob cache warmup failed"));
 });

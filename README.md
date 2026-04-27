@@ -1,4 +1,4 @@
-# MemeDAO Royale shelbynetfun
+# Shelbynetfun
 
 > **The first fully on-chain AI Meme Provenance Arena on Shelbynet + Aptos**
 
@@ -220,3 +220,4 @@ git push origin feat/my-feature
 
 ## License
 
+MIT — free to fork, remix, and meme to the moon.

@@ -30,7 +30,7 @@ export function NetworkWarning() {
         Petra is on{" "}
         <span className="text-amber-400 font-bold uppercase">{networkName}</span>{" "}
         — Switch to{" "}
-        <span className="text-amber-400 font-bold">Shelbynet</span> in Petra to use MemeDAO Royale.
+        <span className="text-amber-400 font-bold">Shelbynet</span> in Petra to use Shelbynetfun.
       </span>
       <span className="text-amber-400/70 text-xs hidden sm:inline">
         (Petra → Settings → Network → Shelbynet)
