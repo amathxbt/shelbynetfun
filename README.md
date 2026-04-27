@@ -220,4 +220,3 @@ git push origin feat/my-feature
 
 ## License
 
-MIT — free to fork, remix, and meme to the moon.
